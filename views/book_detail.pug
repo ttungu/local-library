@@ -30,5 +30,11 @@ block content
       p #[strong Id: ]
         a(href=val.url) #{val._id}
 
-    else
+    if !book_instance
       p There are no copies of this book in the library.
+
+    hr
+    p
+      a(href=book.url+'/delete') Delete Book
+    p
+      a(href=book.url+'/update') Update Book
