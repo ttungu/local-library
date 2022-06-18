@@ -127,11 +127,40 @@ exports.author_delete_post = function(req, res, next) {
 };
 
 // Display Author update form on GET.
-exports.author_update_get = function (req, res) {
-    res.send('NOT IMPLEMENTED: Author update GET');
+exports.author_update_get = function (req, res, next) {
+    Author.findById(req.params.id)
+        .exec(function(err, author ){
+            if(err) {return next(err)}
+            res.render("author_form", {title: "Update "+author.name, author:author})
+        })
 };
 
 // Handle Author update on POST.
-exports.author_update_post = function (req, res) {
-    res.send('NOT IMPLEMENTED: Author update POST');
-};
+exports.author_update_post = [
+    body('first_name').trim().isLength({ min: 1 }).withMessage('First name must be specified.')
+        .isAlphanumeric().withMessage('First name must be alpha-numeric.'),
+    body('family_name').trim().isLength({ min: 1 }).withMessage('Famliy name must be specified.')
+        .isAlphanumeric().withMessage('Family name must be alpha-numeric.'),
+    body('date_of_birth', 'Invalid date of birth').optional({ checkFalsy: true }).isISO8601().toDate(),
+    body('date_of_death', 'Invalid date of death').optional({ checkFalsy: true }).isISO8601().toDate(),
+
+    (req,res, next) => {
+        const errors = validationResult(req);
+        if(!errors.isEmpty) {
+            res.render(('author_form',{title: 'Create Author', author: req.body, errors: errors.array()}));
+        } else {
+            const {first_name, family_name, date_of_birth, date_of_death} = req.body;
+            const author = new Author({
+                first_name: first_name,
+                family_name: family_name,
+                date_of_birth: date_of_birth,
+                date_of_death: date_of_death,
+                _id: req.params.id
+            })
+            Author.findByIdAndUpdate(req.params.id, author, {}, function(err, theauthor){
+                if(err) {return next(err)}
+                res.redirect(theauthor.url)
+            })
+        }
+    }
+]
