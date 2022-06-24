@@ -4,16 +4,17 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var mongoose = require('mongoose');
+require('dotenv').config();
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
 var catalogRouter = require('./routes/catalog'); 
+var helmet = require('helmet');
 
 var app = express();
 
 //DB connection
-var mongoDB = 'mongodb+srv://local_library:local_library@cluster0.miihq.mongodb.net/local_library?retryWrites=true&w=majority';
-mongoose.connect(mongoDB, { useNewUrlParser: true , useUnifiedTopology: true});
+mongoose.connect(process.env.MONGO_URI, { useNewUrlParser: true , useUnifiedTopology: true});
 var db = mongoose.connection;
 db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 
@@ -21,6 +22,7 @@ db.on('error', console.error.bind(console, 'MongoDB connection error:'));
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'pug');
 
+app.use(helmet());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
